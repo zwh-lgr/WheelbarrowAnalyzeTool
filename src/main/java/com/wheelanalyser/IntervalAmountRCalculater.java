@@ -35,13 +35,17 @@ public class IntervalAmountRCalculater {
         @Override
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             String text = value.toString();
+
+            //回避csv格式文件首行，具体需要根据csv文件的格式来定
             if(!text.contains("\"id\",\"time\"")){
                 StringReader stringReader = new StringReader(text);
                 CSVReaderBuilder builder = new CSVReaderBuilder(stringReader);
                 CSVReader csvReader = builder.build();
+                //将csv读入自定义bean中
                 List<Barrage> barrages = new CsvToBeanBuilder<Barrage>(csvReader)
                     .withType(Barrage.class).build().parse();
                 for(Barrage barrage:barrages){
+                    //以用户ID和弹幕时间作为<k,v>输出
                     this.userName.set(barrage.getId());
                     this.commentTime.set(barrage.getTime());
                     context.write(this.userName, this.commentTime);
@@ -64,13 +68,17 @@ public class IntervalAmountRCalculater {
             int valueSize = Iterables.size(valueList);
             
             if(valueSize > 1){
-                int count = 0;
-                long interval = 0;
-                Text time = new Text();
+                //仅处理发言数大于1的用户
+                int count = 0;              //发言数
+                long interval = 0;          //本次发言距第一次发言的间隔
+                Text time = new Text();     //发言时间
+                //将发言间隔作为x，发言数作为y
                 double[] xData = new double[valueSize];
                 double[] yData = new double[valueSize];
                 
+                //对发言时间进行排序
                 Collections.sort(valueList);
+                //以排序后的第一个时间作为计算原点
                 LocalDateTime oX = TimeParser.parseToLocalDateTime(Iterables.getFirst(valueList, null).toString());
                 for(Text value:valueList){
                     time = value;
@@ -79,9 +87,11 @@ public class IntervalAmountRCalculater {
                     yData[count] = (double)count+1;
                 }
                
+                //计算皮尔逊相关系数，由于间隔与发言数成正比例关系，独轮车用户的相关系数R将会接近1
                 this.result.set(new PearsonsCorrelation().correlation(xData,yData));
                 context.write(key, result);                   
             }else{
+                //将发言次数仅为一次的用户的结果设为-1
                 this.result.set(-1.0);
                 context.write(key, result);
             }           

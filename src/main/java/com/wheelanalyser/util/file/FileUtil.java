@@ -3,6 +3,11 @@ package com.wheelanalyser.util.file;
 import java.io.File;
 
 public class FileUtil {
+    /**
+     * 删除output目录
+     * @param path
+     * @return
+     */
     public static boolean deleteDir(String path) {
         File dir = new File(path);
         if(dir.exists()){

@@ -1,22 +1,17 @@
 package com.wheelanalyser.bean;
 
-/*---------------------------------------
-import com.amane.bean.converter.*;
-
-import java.time.LocalDateTime;
-----------------------------------------*/
 import com.opencsv.bean.CsvBindByPosition;
-//import com.opencsv.bean.CsvCustomBindByPosition;
 
 public class Barrage {
+	//以映射策略读取csv格式文件内容
     @CsvBindByPosition(position = 2)
-    private String id;
+    private String id;		//用户ID
 
     @CsvBindByPosition(position = 1)
-    private String time;
+    private String time;	//发言时间
 
     @CsvBindByPosition(position = 3)
-    private String comment;
+    private String comment;	//发言内容，实际上本实现并未使用该字段
 
 	public String getId() {
 		return id;
