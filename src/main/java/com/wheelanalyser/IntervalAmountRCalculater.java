@@ -31,12 +31,12 @@ public class IntervalAmountRCalculater {
             String text = value.toString().replace("\"", "");
 
             // 回避csv格式文件首行，具体需要根据csv文件的格式来定
-            if (!text.contains("id,time")) {
+            if (!text.contains("time,room_id,sender_name")) {
                 // text.replaceAll("\"", "");
                 String item[] = text.split(",");
                
                 this.userName.set(item[2]);
-                this.commentTime.set(item[1]);
+                this.commentTime.set(item[0]);
                 context.write(this.userName, this.commentTime);
             }
         }
@@ -55,8 +55,8 @@ public class IntervalAmountRCalculater {
 
             int valueSize = Iterables.size(valueList);
 
-            if (valueSize > 1) {
-                // 仅处理发言数大于1的用户
+            if (valueSize > 2) {
+                // 仅处理发言数大于2的用户
                 int count = 0; // 发言数
                 long interval = 0; // 本次发言距第一次发言的间隔
                 Text time = new Text(); // 发言时间
@@ -74,6 +74,8 @@ public class IntervalAmountRCalculater {
                             .abs(Duration.between(oX, TimeParser.parseToLocalDateTime(time.toString())).getSeconds());
                     xData[count] = (double) interval;
                     yData[count] = (double) count + 1;
+                    count++;
+                    //context.write(key, new DoubleWritable(yData[count]));
                 }
 
                 // 计算皮尔逊相关系数，由于间隔与发言数成正比例关系，独轮车用户的相关系数R将会接近1
