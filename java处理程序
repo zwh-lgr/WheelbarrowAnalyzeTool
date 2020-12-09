@@ -1,0 +1,61 @@
+import java.io.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+
+public class ex1 {
+    public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
+        long startTime=System.currentTimeMillis();
+        String path="E:\\input.txt";
+        String line;
+        HashMap<String,Integer> map=new HashMap<String, Integer>();
+        Connection con=connectDatebase(args[1],args[2]);
+        //从文件中按行读取数据并处理
+        File inFile=new File(path);
+        BufferedReader reader=new BufferedReader(new FileReader(inFile));
+        while ((line=reader.readLine().toString())!=null){
+            String[] splits=line.split("，");
+            if(!map.containsKey(splits[2])){
+                map.put(splits[2],1);
+            }
+            else {
+                map.put(splits[2],map.get(splits[2])+1);
+            }
+        }
+        //写入数据到数据库中
+
+
+
+        long endTime=System.currentTimeMillis();
+        //运行时间的获取为 （程序结束的系统时间-程序开始的系统时间）
+        long runTime=endTime-startTime;
+        writeDatebase(con,"java",runTime);
+        con.close();
+    }
+    //连接数据库的方法
+    public static Connection connectDatebase(String driver,String url) throws ClassNotFoundException, SQLException {
+        Connection con=null;
+        //driver为使用的数据库驱动jar包名
+        Class.forName(driver);
+        //url为数据库在本地的地址以及数据库名称，如：jdbc:mysql://localhost:3306/test（test为所需连接的数据库名称）
+
+        //用户名
+        String userName="";
+        //密码
+        String userPasswd="";
+        con= DriverManager.getConnection(url,userName,userPasswd);
+        return con;
+    }
+    //写入数据库的方法
+    public static void writeDatebase(Connection con,String projectName,long runTime) throws SQLException {
+        Date date = new Date(runTime);
+        SimpleDateFormat sim=new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        String time=sim.format(date);
+        String sql="insert into table values(?,?)";
+        PreparedStatement pstmt=con.prepareStatement(sql);
+        pstmt.setString(1,projectName);
+        pstmt.setString(2,time);
+        pstmt.execute();
+        pstmt.close();
+    }
+}
